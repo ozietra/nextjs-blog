@@ -51,12 +51,20 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        setError('E-posta veya şifre hatalı')
-      } else {
+        // Hata mesajını göster
+        if (result.error === 'CredentialsSignin') {
+          setError('E-posta veya şifre hatalı')
+        } else {
+          setError(result.error)
+        }
+      } else if (result?.ok) {
         router.push(callbackUrl)
         router.refresh()
+      } else {
+        setError('Giriş yapılamadı')
       }
     } catch (err) {
+      console.error('Login error:', err)
       setError('Bir hata oluştu')
     } finally {
       setLoading(false)

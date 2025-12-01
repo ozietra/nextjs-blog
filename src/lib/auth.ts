@@ -1,12 +1,11 @@
 // NextAuth.js Yapılandırması
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { PrismaAdapter } from '@auth/prisma-adapter'
 import bcrypt from 'bcryptjs'
 import { db } from './db'
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(db) as NextAuthOptions['adapter'],
+  // CredentialsProvider ile adapter kullanılmaz - JWT strategy ile çalışır
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -15,33 +14,38 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Şifre', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Email ve şifre gereklidir')
-        }
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            return null
+          }
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email },
-        })
+          const user = await db.user.findUnique({
+            where: { email: credentials.email },
+          })
 
-        if (!user || !user.password) {
-          throw new Error('Kullanıcı bulunamadı')
-        }
+          if (!user || !user.password) {
+            return null
+          }
 
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password,
+            user.password
+          )
 
-        if (!isPasswordValid) {
-          throw new Error('Hatalı şifre')
-        }
+          if (!isPasswordValid) {
+            return null
+          }
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name ?? undefined,
-          role: (user as { role?: string }).role || 'SUBSCRIBER',
-          avatar: user.avatar ?? undefined,
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name ?? undefined,
+            role: (user as { role?: string }).role || 'SUBSCRIBER',
+            avatar: user.avatar ?? undefined,
+          }
+        } catch (error) {
+          console.error('Auth error:', error)
+          return null
         }
       },
     }),
