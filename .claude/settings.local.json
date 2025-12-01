@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(vercel login)",
+      "Bash(vercel whoami:*)",
+      "Bash(start https://vercel.com/login)",
+      "Bash(vercel:*)",
+      "Bash(npm run build:*)",
+      "Bash(git -C \"C:/Users/oguzy/projects/nextjs-blog\" remote -v)",
+      "Bash(git -C \"C:/Users/oguzy/projects/nextjs-blog\" status --short)",
+      "Bash(git -C \"C:/Users/oguzy/projects/nextjs-blog\" add -A)",
+      "Bash(git -C \"C:/Users/oguzy/projects/nextjs-blog\" commit -m \"$(cat <<''EOF''\nAdd complete blog system with VPS deployment support\n\n- Full Next.js 16 blog with admin panel\n- Prisma + PostgreSQL database\n- NextAuth authentication\n- Lexical rich text editor\n- AI content generation (OpenAI)\n- Media management (Vercel Blob + Local storage)\n- VPS deployment with Docker Compose\n- Automatic installation script\n- Nginx reverse proxy with SSL support\nEOF\n)\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
