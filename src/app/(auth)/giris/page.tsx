@@ -1,12 +1,9 @@
 'use client'
 
 // Giriş Sayfası
-import { useState, useEffect } from 'react'
-import { signIn, useSession } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { useState } from 'react'
+import { signIn } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -15,83 +12,45 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Spinner } from '@/components/ui/spinner'
 import { LogIn, Eye, EyeOff } from 'lucide-react'
 
-const loginSchema = z.object({
-  email: z.string().email('Geçerli bir e-posta adresi girin'),
-  password: z.string().min(6, 'Şifre en az 6 karakter olmalı'),
-})
-
-type LoginFormData = z.infer<typeof loginSchema>
-
-// Rol bazlı yönlendirme URL'i
-function getRedirectUrl(role: string | undefined, callbackUrl: string): string {
-  // Eğer callback URL varsa ve admin değilse, onu kullan
-  if (callbackUrl && callbackUrl !== '/admin') {
-    return callbackUrl
-  }
-
-  // Rol bazlı yönlendirme
-  switch (role) {
-    case 'ADMIN':
-    case 'EDITOR':
-    case 'AUTHOR':
-      return '/admin'
-    case 'SUBSCRIBER':
-    default:
-      return '/hesabim'
-  }
-}
-
 export default function LoginPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
-  const { data: session, status } = useSession()
-  const callbackUrl = searchParams.get('callbackUrl') || '/admin'
+  const callbackUrl = searchParams.get('callbackUrl') || ''
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-  // Eğer zaten giriş yapmışsa, yönlendir
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      const redirectUrl = getRedirectUrl(session.user.role, callbackUrl)
-      router.push(redirectUrl)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Validation
+    if (!email || !password) {
+      setError('E-posta ve şifre gereklidir')
+      return
     }
-  }, [status, session, router, callbackUrl])
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-  })
+    if (password.length < 6) {
+      setError('Şifre en az 6 karakter olmalı')
+      return
+    }
 
-  const onSubmit = async (data: LoginFormData) => {
     setLoading(true)
     setError(null)
 
     try {
       const result = await signIn('credentials', {
-        email: data.email,
-        password: data.password,
-        redirect: false,
+        email: email,
+        password: password,
+        redirect: true,
+        callbackUrl: callbackUrl || '/admin',
       })
 
+      // redirect: true olduğu için buraya gelmeyecek (başarılı ise)
+      // Sadece hata durumunda buraya gelir
       if (result?.error) {
-        // Hata mesajını göster
-        if (result.error === 'CredentialsSignin') {
-          setError('E-posta veya şifre hatalı')
-        } else {
-          setError(result.error)
-        }
-        setLoading(false)
-      } else if (result?.ok) {
-        // Başarılı giriş - session güncellenince useEffect yönlendirecek
-        // Sayfayı yenile
-        router.refresh()
-      } else {
-        setError('Giriş yapılamadı')
+        setError('E-posta veya şifre hatalı')
         setLoading(false)
       }
     } catch (err) {
@@ -99,15 +58,6 @@ export default function LoginPage() {
       setError('Bir hata oluştu')
       setLoading(false)
     }
-  }
-
-  // Loading state
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/50">
-        <Spinner size="lg" />
-      </div>
-    )
   }
 
   return (
@@ -125,7 +75,7 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <div className="bg-card rounded-xl border p-8 shadow-sm">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email">E-posta</Label>
               <Input
@@ -133,14 +83,9 @@ export default function LoginPage() {
                 type="email"
                 placeholder="ornek@email.com"
                 autoComplete="email"
-                {...register('email')}
-                className={errors.email ? 'border-destructive' : ''}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
-              {errors.email && (
-                <p className="text-sm text-destructive mt-1">
-                  {errors.email.message}
-                </p>
-              )}
             </div>
 
             <div>
@@ -151,8 +96,8 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   autoComplete="current-password"
-                  {...register('password')}
-                  className={errors.password ? 'border-destructive' : ''}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
                 <button
                   type="button"
@@ -166,11 +111,6 @@ export default function LoginPage() {
                   )}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-sm text-destructive mt-1">
-                  {errors.password.message}
-                </p>
-              )}
             </div>
 
             {error && (
