@@ -135,14 +135,8 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Register Link */}
-        <div className="text-center mt-6 space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Hesabınız yok mu?{' '}
-            <Link href="/kayit" className="text-primary hover:underline">
-              Kayıt olun
-            </Link>
-          </p>
+        {/* Back Link */}
+        <div className="text-center mt-6">
           <Link
             href="/"
             className="text-sm text-muted-foreground hover:text-foreground inline-block"

@@ -17,7 +17,6 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
-  Users,
   UserCircle,
   FileCode,
   Mail,
@@ -72,11 +71,6 @@ const menuItems = [
     title: 'Sayfalar',
     href: '/admin/sayfalar',
     icon: FileCode,
-  },
-  {
-    title: 'Kullanıcılar',
-    href: '/admin/kullanicilar',
-    icon: Users,
   },
   {
     title: 'Profil',
