@@ -5,17 +5,20 @@ import bcrypt from 'bcryptjs'
 import { db } from './db'
 
 export const authOptions: NextAuthOptions = {
-  // CredentialsProvider ile adapter kullanılmaz - JWT strategy ile çalışır
   providers: [
     CredentialsProvider({
-      name: 'credentials',
+      id: 'credentials',
+      name: 'Credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Şifre', type: 'password' },
       },
       async authorize(credentials) {
+        console.log('[AUTH] Login attempt:', credentials?.email)
+
         try {
           if (!credentials?.email || !credentials?.password) {
+            console.log('[AUTH] Missing credentials')
             return null
           }
 
@@ -23,7 +26,10 @@ export const authOptions: NextAuthOptions = {
             where: { email: credentials.email },
           })
 
+          console.log('[AUTH] User found:', !!user)
+
           if (!user || !user.password) {
+            console.log('[AUTH] No user or no password')
             return null
           }
 
@@ -32,19 +38,24 @@ export const authOptions: NextAuthOptions = {
             user.password
           )
 
+          console.log('[AUTH] Password valid:', isPasswordValid)
+
           if (!isPasswordValid) {
             return null
           }
 
-          return {
+          const result = {
             id: user.id,
             email: user.email,
-            name: user.name ?? undefined,
+            name: user.name ?? null,
             role: (user as { role?: string }).role || 'SUBSCRIBER',
-            avatar: user.avatar ?? undefined,
+            avatar: user.avatar ?? null,
           }
+
+          console.log('[AUTH] Returning user:', result.id)
+          return result
         } catch (error) {
-          console.error('Auth error:', error)
+          console.error('[AUTH] Error:', error)
           return null
         }
       },
@@ -58,8 +69,8 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
-        token.role = user.role
-        token.avatar = user.avatar
+        token.role = (user as { role?: string }).role
+        token.avatar = (user as { avatar?: string }).avatar
       }
       return token
     },
@@ -67,7 +78,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string
         session.user.role = token.role as string
-        session.user.avatar = token.avatar as string
+        session.user.avatar = token.avatar as string | undefined
       }
       return session
     },
@@ -76,5 +87,6 @@ export const authOptions: NextAuthOptions = {
     signIn: '/giris',
     error: '/giris',
   },
+  debug: process.env.NODE_ENV === 'development',
   secret: process.env.NEXTAUTH_SECRET,
 }

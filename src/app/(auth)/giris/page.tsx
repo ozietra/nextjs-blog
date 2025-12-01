@@ -40,15 +40,20 @@ export default function LoginPage() {
   })
 
   const onSubmit = async (data: LoginFormData) => {
+    console.log('Form submitted:', data.email)
     setLoading(true)
     setError(null)
 
     try {
+      console.log('Calling signIn...')
       const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
         redirect: false,
+        callbackUrl: callbackUrl,
       })
+
+      console.log('SignIn result:', result)
 
       if (result?.error) {
         // Hata mesajını göster
@@ -57,16 +62,17 @@ export default function LoginPage() {
         } else {
           setError(result.error)
         }
+        setLoading(false)
       } else if (result?.ok) {
-        router.push(callbackUrl)
-        router.refresh()
+        // Başarılı giriş - sayfayı yenile ve yönlendir
+        window.location.href = callbackUrl
       } else {
         setError('Giriş yapılamadı')
+        setLoading(false)
       }
     } catch (err) {
       console.error('Login error:', err)
       setError('Bir hata oluştu')
-    } finally {
       setLoading(false)
     }
   }
