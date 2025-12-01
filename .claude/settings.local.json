@@ -10,7 +10,18 @@
       "Bash(git -C \"C:/Users/oguzy/projects/nextjs-blog\" remote -v)",
       "Bash(git -C \"C:/Users/oguzy/projects/nextjs-blog\" status --short)",
       "Bash(git -C \"C:/Users/oguzy/projects/nextjs-blog\" add -A)",
-      "Bash(git -C \"C:/Users/oguzy/projects/nextjs-blog\" commit -m \"$(cat <<''EOF''\nAdd complete blog system with VPS deployment support\n\n- Full Next.js 16 blog with admin panel\n- Prisma + PostgreSQL database\n- NextAuth authentication\n- Lexical rich text editor\n- AI content generation (OpenAI)\n- Media management (Vercel Blob + Local storage)\n- VPS deployment with Docker Compose\n- Automatic installation script\n- Nginx reverse proxy with SSL support\nEOF\n)\")"
+      "Bash(git -C \"C:/Users/oguzy/projects/nextjs-blog\" commit -m \"$(cat <<''EOF''\nAdd complete blog system with VPS deployment support\n\n- Full Next.js 16 blog with admin panel\n- Prisma + PostgreSQL database\n- NextAuth authentication\n- Lexical rich text editor\n- AI content generation (OpenAI)\n- Media management (Vercel Blob + Local storage)\n- VPS deployment with Docker Compose\n- Automatic installation script\n- Nginx reverse proxy with SSL support\nEOF\n)\")",
+      "Bash(gh auth:*)",
+      "Bash(where:*)",
+      "Bash(winget install:*)",
+      "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" auth status)",
+      "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" auth login --web --git-protocol https)",
+      "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" repo create nextjs-blog --public --source=. --remote=origin --push --description \"Next.js 16 Blog with Admin Panel, Prisma, NextAuth, AI Content Generation, VPS Docker Deployment\")",
+      "Bash(npx vercel whoami --token xnT3LiOh0mKfzwo6MiXGxj26)",
+      "Bash(npx vercel:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

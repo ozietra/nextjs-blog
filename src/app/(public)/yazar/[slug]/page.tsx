@@ -7,7 +7,7 @@ import { PostCard } from '@/components/blog/post-card'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { ChevronRight, Mail, Calendar } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { formatDate, getSiteUrl } from '@/lib/utils'
 
 interface AuthorPageProps {
   params: Promise<{ slug: string }>
@@ -119,7 +119,7 @@ export default async function AuthorPage({
     name: author.name,
     description: author.bio,
     image: author.avatar,
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/yazar/${author.slug}`,
+    url: `${getSiteUrl()}/yazar/${author.slug}`,
   }
 
   return (

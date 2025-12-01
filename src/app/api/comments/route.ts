@@ -1,5 +1,7 @@
 // Comments API
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { z } from 'zod'
 
@@ -9,6 +11,7 @@ const commentSchema = z.object({
   authorName: z.string().min(2),
   authorEmail: z.string().email(),
   content: z.string().min(10),
+  userId: z.string().nullable().optional(),
 })
 
 // GET - Bir makaleye ait onaylanmış yorumları getir
@@ -46,6 +49,7 @@ export async function GET(request: NextRequest) {
 // POST - Yeni yorum oluştur
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
     const body = await request.json()
     const data = commentSchema.parse(body)
 
@@ -72,19 +76,40 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Giriş yapmış kullanıcılar için otomatik onay
+    const isLoggedIn = !!session?.user?.id
+    const autoApprove = isLoggedIn
+
+    // Yorum verisi oluştur - yeni alanlar opsiyonel
+    const commentData: Record<string, unknown> = {
+      postId: data.postId,
+      parentId: data.parentId || null,
+      authorName: data.authorName,
+      authorEmail: data.authorEmail,
+      content: data.content,
+      approved: autoApprove,
+    }
+
+    // isGuest ve userId alanları veritabanında varsa ekle
+    try {
+      commentData.isGuest = !isLoggedIn
+      if (isLoggedIn) {
+        commentData.userId = session.user.id
+      }
+    } catch {
+      // Alanlar yoksa devam et
+    }
+
     const comment = await db.comment.create({
-      data: {
-        postId: data.postId,
-        parentId: data.parentId || null,
-        authorName: data.authorName,
-        authorEmail: data.authorEmail,
-        content: data.content,
-        approved: false, // Varsayılan olarak onay bekliyor
-      },
+      data: commentData as never,
     })
 
     return NextResponse.json(
-      { message: 'Yorum gönderildi, onay bekleniyor' },
+      {
+        message: autoApprove
+          ? 'Yorumunuz yayınlandı'
+          : 'Yorum gönderildi, onay bekleniyor',
+      },
       { status: 201 }
     )
   } catch (error) {

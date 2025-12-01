@@ -29,10 +29,10 @@ interface GenerateRequest {
 }
 
 const contentTypePrompts: Record<string, string> = {
-  blog: 'SEO uyumlu, bilgilendirici ve ilgi çekici bir blog makalesi yaz.',
+  blog: 'Ultra-detaylı, kapsamlı ve SEO uyumlu bir blog makalesi yaz.',
   'product-review': 'Detaylı ve objektif bir ürün incelemesi yaz. Artıları, eksileri ve sonuç bölümlerini içer.',
-  listicle: 'Numaralı maddeler halinde organize edilmiş bir liste makalesi yaz.',
-  tutorial: 'Adım adım talimatlar içeren detaylı bir rehber/tutorial yaz.',
+  listicle: 'Numaralı maddeler halinde organize edilmiş detaylı bir liste makalesi yaz.',
+  tutorial: 'Adım adım talimatlar içeren çok detaylı bir rehber/tutorial yaz.',
   news: 'Güncel ve bilgilendirici bir haber makalesi formatında yaz.',
   custom: '',
 }
@@ -43,6 +43,80 @@ const toneDescriptions: Record<string, string> = {
   formal: 'resmi ve ciddi bir ton kullan',
   casual: 'gündelik ve rahat bir ton kullan',
 }
+
+// Ultra-detaylı makale için master prompt
+const getMasterPrompt = (wordCount: string, keywords: string) => `
+⚡ KRİTİK GEREKİNİMLER - ULTRA-DETAYLI MAKALE:
+
+1. UZUNLUK VE DERİNLİK (EN ÖNEMLİ):
+   - Makale EN AZ ${wordCount} kelime olmalı, DAHA UZUN yazmaya çalış
+   - Her H2 bölümü 400-600 kelime içermeli
+   - Her paragraf 200-400 kelime olmalı
+   - Her H2 başlığı altında 2-3 uzun paragraf yaz
+   - Kısa, yüzeysel içerik YAZMA
+   - Her cümle yeni bilgi ve değer katmalı
+
+2. YAPI:
+   - Etkileyici bir giriş paragrafı ile başla (250-300 kelime)
+   - 5-8 adet H2 ana bölüm içermeli
+   - Her H2 altında 2-3 detaylı paragraf olmalı
+   - H2 bölümleri içinde H3 alt başlıklar kullan
+   - Kapsamlı bir sonuç paragrafı ile bitir (200-250 kelime)
+   - H1 etiketi KULLANMA
+   - "Giriş" gibi başlıklar KULLANMA, doğrudan içerikle başla
+
+3. PARAGRAF KALİTESİ:
+   Her paragraf şunları içermeli:
+   - Kavram açıklaması (50-75 kelime)
+   - Detaylı örnekler veya vaka çalışmaları (75-100 kelime)
+   - Pratik uygulamalar veya ipuçları (50-75 kelime)
+   - Uzman görüşleri veya araştırma bulguları (50-75 kelime)
+
+4. HTML FORMAT:
+   - Temiz HTML kullan: <h2>, <h3>, <h4>, <p>, <table>, <ul>, <li>
+   - Her paragraf <p></p> etiketleri arasında
+   - Her başlık doğru etiketlerde: <h2>Başlık</h2>
+   - H1 etiketi HIÇBİR YERDE kullanma
+   - Başlıkların önüne "H2:", "H3:" gibi şeyler ekleme
+
+5. TABLOLAR:
+   - Makalede 1-2 HTML tablo ekle
+   - Tablolar önemli bilgileri organize etmeli
+
+6. İÇERİK ÇEŞİTLİLİĞİ:
+   Şunları ekle:
+   - Tarihsel bağlam ve arka plan
+   - Güncel trendler ve modern uygulamalar
+   - Farklı bakış açıları
+   - Bilimsel veya araştırma tabanlı bilgi
+   - Pratik ipuçları ve uygulanabilir tavsiyeler
+   - Yaygın yanlış anlamalar ve açıklamalar
+   - Gerçek dünya örnekleri
+   - Adım adım açıklamalar
+
+7. YAZIM STİLİ:
+   - Profesyonel ama etkileyici ton
+   - Net ve anlaşılır dil
+   - Paragraflar arası doğal geçişler
+   - Yapay zeka terimleri KULLANMA: "kapsamlı rehber", "nihai", "keşfetmek"
+   - Sohbet tarzında ama otoriter ses
+
+8. ANAHTAR KELİME KULLANIMI:
+   ${keywords ? `- "${keywords}" anahtar kelimelerini doğal olarak kullan` : ''}
+   - İlk paragrafta ana konuyu kullan
+   - 2-3 H2 başlığında doğal olarak kullan
+   - Toplamda 5-8 kez kullan (daha fazla değil)
+   - %1-1.5 anahtar kelime yoğunluğu
+   - Asla zorla veya doldurma yapma
+
+9. KALİTE STANDARTLARI:
+   - %100 orijinal içerik
+   - Gerçek ve doğru bilgi
+   - Profesyonel ve saygılı ton
+   - Google AdSense uyumlu
+
+🎯 UNUTMA: Daha fazla içerik daha iyidir. Kapsamlı, detaylı ve zengin içerik yaz!
+`
 
 export async function POST(request: NextRequest) {
   try {
@@ -92,10 +166,15 @@ export async function POST(request: NextRequest) {
       ? `Şu anahtar kelimeleri doğal bir şekilde içeriğe dahil et: ${body.keywords}.`
       : ''
 
-    const systemPrompt = `Sen profesyonel bir içerik yazarısın. Türkçe dilinde SEO uyumlu, yüksek kaliteli içerikler üretiyorsun.
+    const masterPromptContent = getMasterPrompt(body.wordCount, body.keywords || '')
+
+    const systemPrompt = `Sen çok deneyimli ve profesyonel bir Türkçe içerik uzmanısın. Ultra-detaylı, SEO uyumlu, okunabilir ve son derece bilgilendirici makaleler yazıyorsun. Her paragrafın zengin içerikli ve değerli olmasına özen gösteriyorsun.
+
 HTML formatında yanıt ver (sadece body içeriği, html/head/body etiketleri olmadan).
-Başlıklar için h2, h3 etiketlerini, paragraflar için p etiketini, listeler için ul/ol ve li etiketlerini kullan.
-${tonePrompt}.`
+Başlıklar için h2, h3 etiketlerini, paragraflar için p etiketini, listeler için ul/ol ve li etiketlerini, tablolar için table etiketini kullan.
+${tonePrompt}.
+
+${masterPromptContent}`
 
     const userPrompt = `${contentTypePrompt}
 
@@ -103,15 +182,15 @@ Konu: ${body.topic}
 
 ${keywordsPrompt}
 
-Hedef kelime sayısı: yaklaşık ${body.wordCount} kelime.
+Hedef kelime sayısı: EN AZ ${body.wordCount} kelime (daha fazla yaz!).
 
 Aşağıdaki JSON formatında yanıt ver:
 {
-  "title": "Makale başlığı",
-  "content": "HTML formatında makale içeriği",
-  "excerpt": "2-3 cümlelik özet",
+  "title": "SEO uyumlu, ilgi çekici makale başlığı",
+  "content": "HTML formatında ULTRA-DETAYLI makale içeriği (tablolar, örnekler, detaylı paragraflar dahil)",
+  "excerpt": "2-3 cümlelik etkileyici özet",
   "metaDescription": "155 karakterlik SEO meta açıklaması",
-  "suggestedTags": ["etiket1", "etiket2", "etiket3"]
+  "suggestedTags": ["etiket1", "etiket2", "etiket3", "etiket4", "etiket5"]
 }`
 
     const completion = await openai.chat.completions.create({
@@ -121,7 +200,7 @@ Aşağıdaki JSON formatında yanıt ver:
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.7,
-      max_tokens: 4000,
+      max_tokens: 16000, // Daha uzun içerik için artırıldı
     })
 
     const responseText = completion.choices[0]?.message?.content

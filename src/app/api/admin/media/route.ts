@@ -72,19 +72,22 @@ export async function POST(request: NextRequest) {
         const extension = file.name.split('.').pop() || 'jpg'
         const filename = `${uuid}.${extension}`
 
-        // Storage'a yükle (Vercel veya Local)
+        // Storage'a yükle (Vercel veya Local) - otomatik WebP dönüşümü yapılır
         const result = await uploadFile(file, filename)
 
-        // Veritabanına kaydet
+        // Veritabanına kaydet (WebP dönüşümü sonrası bilgilerle)
+        const finalFilename = result.pathname
+        const isWebP = finalFilename.endsWith('.webp')
+
         const media = await db.media.create({
           data: {
-            filename,
+            filename: finalFilename,
             originalName: file.name,
             url: result.url,
-            type: file.type,
-            size: file.size,
-            width: null,
-            height: null,
+            type: isWebP ? 'image/webp' : file.type,
+            size: result.size || file.size,
+            width: result.width || null,
+            height: result.height || null,
           },
         })
 

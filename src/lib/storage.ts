@@ -3,12 +3,16 @@ import { put, del } from '@vercel/blob'
 import { writeFile, unlink, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
+import sharp from 'sharp'
 
 export type StorageType = 'vercel' | 'local'
 
 interface UploadResult {
   url: string
   pathname: string
+  width?: number
+  height?: number
+  size?: number
 }
 
 // Storage tipini belirle
@@ -36,8 +40,40 @@ function getUploadDir(): string {
 }
 
 // Site URL'ini al
-function getSiteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'
+function getStorageSiteUrl(): string {
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  if (process.env.NEXTAUTH_URL) {
+    return process.env.NEXTAUTH_URL.replace(/\/$/, '')
+  }
+  return 'http://localhost:3000'
+}
+
+// Görsel dosyasını WebP'ye dönüştür
+async function convertToWebP(buffer: Buffer): Promise<{
+  buffer: Buffer
+  width: number
+  height: number
+}> {
+  const image = sharp(buffer)
+  const metadata = await image.metadata()
+
+  const webpBuffer = await image
+    .webp({ quality: 85 })
+    .toBuffer()
+
+  return {
+    buffer: webpBuffer,
+    width: metadata.width || 0,
+    height: metadata.height || 0,
+  }
 }
 
 // Dosya yükle
@@ -47,15 +83,49 @@ export async function uploadFile(
 ): Promise<UploadResult> {
   const storageType = getStorageType()
 
-  if (storageType === 'vercel') {
-    return uploadToVercel(file, filename)
+  // Görsel dosyalarını WebP'ye dönüştür
+  const isImage = file.type.startsWith('image/') && !file.type.includes('gif') && !file.type.includes('svg')
+
+  let processedBuffer: Buffer
+  let finalFilename = filename
+  let width: number | undefined
+  let height: number | undefined
+
+  const bytes = await file.arrayBuffer()
+  const originalBuffer = Buffer.from(bytes)
+
+  if (isImage) {
+    try {
+      const converted = await convertToWebP(originalBuffer)
+      processedBuffer = converted.buffer
+      width = converted.width
+      height = converted.height
+      // Dosya adını .webp olarak değiştir
+      finalFilename = filename.replace(/\.[^.]+$/, '.webp')
+    } catch (error) {
+      console.error('WebP conversion failed, using original:', error)
+      processedBuffer = originalBuffer
+    }
   } else {
-    return uploadToLocal(file, filename)
+    processedBuffer = originalBuffer
+  }
+
+  // Blob oluştur
+  const processedFile = new Blob([new Uint8Array(processedBuffer)], {
+    type: isImage && finalFilename.endsWith('.webp') ? 'image/webp' : file.type
+  })
+
+  if (storageType === 'vercel') {
+    const result = await uploadToVercel(processedFile, finalFilename)
+    return { ...result, width, height, size: processedBuffer.length }
+  } else {
+    const result = await uploadToLocal(processedBuffer, finalFilename)
+    return { ...result, width, height, size: processedBuffer.length }
   }
 }
 
 // Vercel Blob'a yükle
-async function uploadToVercel(file: File, filename: string): Promise<UploadResult> {
+async function uploadToVercel(file: Blob, filename: string): Promise<UploadResult> {
   const cleanToken = getCleanBlobToken()
 
   if (!cleanToken) {
@@ -75,9 +145,9 @@ async function uploadToVercel(file: File, filename: string): Promise<UploadResul
 }
 
 // Local storage'a yükle
-async function uploadToLocal(file: File, filename: string): Promise<UploadResult> {
+async function uploadToLocal(buffer: Buffer, filename: string): Promise<UploadResult> {
   const uploadDir = getUploadDir()
-  const siteUrl = getSiteUrl()
+  const siteUrl = getStorageSiteUrl()
 
   // Upload dizinini oluştur
   if (!existsSync(uploadDir)) {
@@ -87,9 +157,7 @@ async function uploadToLocal(file: File, filename: string): Promise<UploadResult
   // Dosya yolunu oluştur
   const filePath = path.join(uploadDir, filename)
 
-  // File'ı buffer'a çevir ve kaydet
-  const bytes = await file.arrayBuffer()
-  const buffer = Buffer.from(bytes)
+  // Buffer'ı kaydet
   await writeFile(filePath, buffer)
 
   // URL'i oluştur

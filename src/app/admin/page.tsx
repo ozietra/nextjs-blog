@@ -171,7 +171,7 @@ export default async function AdminDashboard() {
                         {post.title}
                       </Link>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{post.author.name}</span>
+                        <span>{post.author?.name || 'İsimsiz Yazar'}</span>
                         {post.category && (
                           <>
                             <span>•</span>

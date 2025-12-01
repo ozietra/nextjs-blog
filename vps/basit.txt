@@ -1,0 +1,15 @@
+ VPS'e Kurulum İçin
+
+
+  # SSH ile sunucuya bağlanın
+  ssh root@sunucu-ip
+
+  # Projeyi klonlayın
+  git clone https://github.com/ozietra/nextjs-blog.git /opt/nextjs-blog
+
+  # Kurulum scriptini çalıştırın
+  cd /opt/nextjs-blog/vps
+  chmod +x install.sh
+  sudo ./install.sh
+
+  Script size domain, email ve şifre soracak, sonra her şeyi otomatik kuracak.

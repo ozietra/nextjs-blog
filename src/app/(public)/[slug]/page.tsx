@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { db } from '@/lib/db'
-import { formatDate, timeAgo } from '@/lib/utils'
+import { formatDate, timeAgo, getSiteUrl } from '@/lib/utils'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -149,7 +149,7 @@ export default async function PostPage({ params }: PostPageProps) {
   }
 
   const relatedPosts = await getRelatedPosts(post.id, post.categoryId)
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const siteUrl = getSiteUrl()
   const postUrl = `${siteUrl}/${post.slug}`
 
   // Schema.org Article yapısı

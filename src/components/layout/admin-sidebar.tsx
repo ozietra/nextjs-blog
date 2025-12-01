@@ -17,6 +17,8 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
+  Users,
+  UserCircle,
   FileCode,
   Mail,
 } from 'lucide-react'
@@ -70,6 +72,16 @@ const menuItems = [
     title: 'Sayfalar',
     href: '/admin/sayfalar',
     icon: FileCode,
+  },
+  {
+    title: 'Kullanıcılar',
+    href: '/admin/kullanicilar',
+    icon: Users,
+  },
+  {
+    title: 'Profil',
+    href: '/admin/profil',
+    icon: UserCircle,
   },
   {
     title: 'Ayarlar',

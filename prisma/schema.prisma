@@ -10,21 +10,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Kullanıcı modeli (Admin ve Yazarlar)
+// Kullanıcı modeli (Admin, Editor, Author, Subscriber)
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
+  username      String?   @unique
   password      String?
   name          String?
+  displayName   String?
   slug          String?   @unique
   bio           String?   @db.Text
   avatar        String?
-  role          Role      @default(AUTHOR)
+  role          Role      @default(SUBSCRIBER)
   emailVerified DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   posts    Post[]
+  comments Comment[]
   sessions Session[]
   accounts Account[]
 
@@ -77,7 +80,9 @@ model VerificationToken {
 // Rol enum
 enum Role {
   ADMIN
+  EDITOR
   AUTHOR
+  SUBSCRIBER
 }
 
 // Blog yazısı modeli
@@ -166,17 +171,22 @@ model Comment {
   authorName  String
   authorEmail String
   approved    Boolean  @default(false)
+  isGuest     Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   postId String
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
+  userId String?
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
   parentId String?
   parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies  Comment[] @relation("CommentReplies")
 
   @@index([postId, approved])
+  @@index([userId])
   @@map("comments")
 }
 

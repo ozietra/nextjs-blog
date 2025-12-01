@@ -148,11 +148,17 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Back to Home */}
-        <div className="text-center mt-6">
+        {/* Register Link */}
+        <div className="text-center mt-6 space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Hesabınız yok mu?{' '}
+            <Link href="/kayit" className="text-primary hover:underline">
+              Kayıt olun
+            </Link>
+          </p>
           <Link
             href="/"
-            className="text-sm text-muted-foreground hover:text-foreground"
+            className="text-sm text-muted-foreground hover:text-foreground inline-block"
           >
             ← Ana sayfaya dön
           </Link>

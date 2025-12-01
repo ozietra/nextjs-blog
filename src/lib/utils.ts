@@ -200,3 +200,29 @@ export function throttle<T extends (...args: Parameters<T>) => ReturnType<T>>(
     }
   }
 }
+
+// Site URL'ini al (Vercel, VPS veya localhost)
+export function getSiteUrl(): string {
+  // 1. Önce kullanıcı tarafından tanımlanan URL'i kontrol et
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '') // Sondaki slash'ı kaldır
+  }
+
+  // 2. Vercel deployment URL'i (production için)
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  }
+
+  // 3. Vercel URL (preview deployments için)
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+
+  // 4. NextAuth URL
+  if (process.env.NEXTAUTH_URL) {
+    return process.env.NEXTAUTH_URL.replace(/\/$/, '')
+  }
+
+  // 5. Fallback: localhost
+  return 'http://localhost:3000'
+}

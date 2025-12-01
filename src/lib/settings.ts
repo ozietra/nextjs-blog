@@ -27,6 +27,17 @@ export interface SiteSettings {
   // AI
   openaiApiKey: string
   openaiModel: string
+
+  // AdSense
+  adsenseEnabled: boolean
+  adsenseClientId: string
+  adsenseSlotHeader: string
+  adsenseSlotSidebar: string
+  adsenseSlotInArticle: string
+  adsenseSlotFooter: string
+
+  // Analytics
+  googleAnalyticsId: string
 }
 
 const defaultSettings: SiteSettings = {
@@ -55,6 +66,13 @@ const defaultSettings: SiteSettings = {
   ],
   openaiApiKey: '',
   openaiModel: 'gpt-4o-mini',
+  adsenseEnabled: false,
+  adsenseClientId: '',
+  adsenseSlotHeader: '',
+  adsenseSlotSidebar: '',
+  adsenseSlotInArticle: '',
+  adsenseSlotFooter: '',
+  googleAnalyticsId: '',
 }
 
 // Cache settings for performance
@@ -102,6 +120,13 @@ export const getSettings = cache(async (): Promise<SiteSettings> => {
       footerLegalLinks,
       openaiApiKey: settingsMap.openaiApiKey || '',
       openaiModel: settingsMap.openaiModel || 'gpt-4o-mini',
+      adsenseEnabled: settingsMap.adsenseEnabled === 'true',
+      adsenseClientId: settingsMap.adsenseClientId || '',
+      adsenseSlotHeader: settingsMap.adsenseSlotHeader || '',
+      adsenseSlotSidebar: settingsMap.adsenseSlotSidebar || '',
+      adsenseSlotInArticle: settingsMap.adsenseSlotInArticle || '',
+      adsenseSlotFooter: settingsMap.adsenseSlotFooter || '',
+      googleAnalyticsId: settingsMap.googleAnalyticsId || '',
     }
   } catch (error) {
     console.error('Failed to load settings:', error)
