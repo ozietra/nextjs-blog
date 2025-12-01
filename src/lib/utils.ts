@@ -223,6 +223,22 @@ export function getSiteUrl(): string {
     return process.env.NEXTAUTH_URL.replace(/\/$/, '')
   }
 
-  // 5. Fallback: localhost
+  // 5. Veritabanındaki ayarlardan alınan URL için headers kullan (runtime)
+  if (typeof window === 'undefined') {
+    // Server-side: headers'dan host bilgisini al
+    try {
+      const { headers } = require('next/headers')
+      const headersList = headers()
+      const host = headersList.get('host')
+      const protocol = headersList.get('x-forwarded-proto') || 'https'
+      if (host && !host.includes('localhost')) {
+        return `${protocol}://${host}`
+      }
+    } catch {
+      // headers() kullanılamıyor (static generation vb.)
+    }
+  }
+
+  // 6. Fallback: localhost
   return 'http://localhost:3000'
 }

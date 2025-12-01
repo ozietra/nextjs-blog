@@ -38,43 +38,16 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Temel kullanıcı verisi
-    const userData: Record<string, unknown> = {
-      email,
-      password: hashedPassword,
-      name: name || null,
-    }
-
-    // Opsiyonel alanlar - veritabanında varsa ekle
-    if (username) {
-      // Username benzersizliğini kontrol et
-      try {
-        const existingUsername = await db.user.findFirst({
-          where: { username },
-        })
-        if (existingUsername) {
-          return NextResponse.json(
-            { error: 'Bu kullanıcı adı zaten kullanılıyor' },
-            { status: 400 }
-          )
-        }
-        userData.username = username
-      } catch {
-        // username alanı yoksa atla
-      }
-    }
-
-    // Yeni alanları ekle (varsa)
-    try {
-      userData.displayName = name || username || null
-      userData.role = 'SUBSCRIBER'
-    } catch {
-      // Alanlar yoksa atla
-    }
-
-    // Create user
+    // Create user with all fields
     const user = await db.user.create({
-      data: userData as never,
+      data: {
+        email,
+        password: hashedPassword,
+        name: name || null,
+        username: username || null,
+        displayName: name || username || null,
+        role: 'SUBSCRIBER',
+      },
       select: {
         id: true,
         email: true,

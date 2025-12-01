@@ -21,7 +21,10 @@
       "Bash(npx vercel:*)",
       "Bash(npx prisma generate:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": []
