@@ -1,8 +1,8 @@
 'use client'
 
 // Giriş Sayfası
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { useState, useEffect } from 'react'
+import { signIn, useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -22,14 +22,42 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>
 
+// Rol bazlı yönlendirme URL'i
+function getRedirectUrl(role: string | undefined, callbackUrl: string): string {
+  // Eğer callback URL varsa ve admin değilse, onu kullan
+  if (callbackUrl && callbackUrl !== '/admin') {
+    return callbackUrl
+  }
+
+  // Rol bazlı yönlendirme
+  switch (role) {
+    case 'ADMIN':
+    case 'EDITOR':
+    case 'AUTHOR':
+      return '/admin'
+    case 'SUBSCRIBER':
+    default:
+      return '/hesabim'
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session, status } = useSession()
   const callbackUrl = searchParams.get('callbackUrl') || '/admin'
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+
+  // Eğer zaten giriş yapmışsa, yönlendir
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
+      const redirectUrl = getRedirectUrl(session.user.role, callbackUrl)
+      router.push(redirectUrl)
+    }
+  }, [status, session, router, callbackUrl])
 
   const {
     register,
@@ -40,20 +68,15 @@ export default function LoginPage() {
   })
 
   const onSubmit = async (data: LoginFormData) => {
-    console.log('Form submitted:', data.email)
     setLoading(true)
     setError(null)
 
     try {
-      console.log('Calling signIn...')
       const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
         redirect: false,
-        callbackUrl: callbackUrl,
       })
-
-      console.log('SignIn result:', result)
 
       if (result?.error) {
         // Hata mesajını göster
@@ -64,8 +87,9 @@ export default function LoginPage() {
         }
         setLoading(false)
       } else if (result?.ok) {
-        // Başarılı giriş - sayfayı yenile ve yönlendir
-        window.location.href = callbackUrl
+        // Başarılı giriş - session güncellenince useEffect yönlendirecek
+        // Sayfayı yenile
+        router.refresh()
       } else {
         setError('Giriş yapılamadı')
         setLoading(false)
@@ -75,6 +99,15 @@ export default function LoginPage() {
       setError('Bir hata oluştu')
       setLoading(false)
     }
+  }
+
+  // Loading state
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/50">
+        <Spinner size="lg" />
+      </div>
+    )
   }
 
   return (
