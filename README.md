@@ -1,11 +1,11 @@
-# Next.js 14 Blog Sistemi
+# Next.js 16 Blog Sistemi
 
 Modern, SEO uyumlu ve tam özellikli bir blog platformu.
 
 ## Özellikler
 
 ### Genel
-- ✅ Next.js 14 (App Router)
+- ✅ Next.js 16 (App Router)
 - ✅ TypeScript
 - ✅ Tailwind CSS + shadcn/ui
 - ✅ Prisma ORM + PostgreSQL
