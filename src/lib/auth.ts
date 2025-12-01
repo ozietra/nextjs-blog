@@ -44,16 +44,13 @@ export const authOptions: NextAuthOptions = {
             return null
           }
 
-          const result = {
+          console.log('[AUTH] Returning user:', user.id)
+          return {
             id: user.id,
             email: user.email,
-            name: user.name ?? null,
-            role: (user as { role?: string }).role || 'SUBSCRIBER',
-            avatar: user.avatar ?? null,
+            name: user.name || undefined,
+            image: user.avatar || undefined,
           }
-
-          console.log('[AUTH] Returning user:', result.id)
-          return result
         } catch (error) {
           console.error('[AUTH] Error:', error)
           return null
